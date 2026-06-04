@@ -297,7 +297,7 @@ A janela principal abrirá com os dois módulos lado a lado.
 
 ---
 
-### Módulo Médico (painel direito)
+### Módulo Médico (painel direito) (Em Desenvolvimento....) 
 
 1. **Digite o texto** no campo de entrada (diagnóstico, pergunta, instrução)
 2. **Clique em "🤟 Traduzir para LIBRAS"** ou pressione **Ctrl+Enter**
