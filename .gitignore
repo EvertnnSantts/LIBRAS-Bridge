@@ -1,0 +1,67 @@
+# =============================================================
+#  LIBRAS Bridge — .gitignore
+#  Define arquivos e diretórios ignorados pelo Git
+# =============================================================
+
+# Ambiente virtual Python
+venv/
+.venv/
+env/
+.env
+ENV/
+
+# Variáveis de ambiente (contém dados sensíveis)
+.env
+
+# Arquivos compilados Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribuição e empacotamento
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Logs gerados pela aplicação
+logs/
+*.log
+
+# Dados de treinamento (podem ser grandes demais para o Git)
+data/training/
+
+# Modelos treinados (arquivo binário grande)
+models/
+*.pkl
+*.h5
+*.pt
+*.pth
+
+# Pytest e cobertura de código
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Mypy
+.mypy_cache/
+
+# IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Assets gerados
+assets/icon_generated.*

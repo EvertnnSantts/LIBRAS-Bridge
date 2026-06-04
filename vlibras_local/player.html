@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>VLibras Player</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0F1B2D;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: Helvetica, sans-serif;
+            color: #E8EDF5;
+        }
+        #vlibras-wrapper {
+            width: 100%;
+            max-width: 700px;
+            background: #162236;
+            border-radius: 12px;
+            border: 1px solid #243450;
+            overflow: hidden;
+        }
+        #text-display {
+            padding: 14px 20px;
+            font-size: 15px;
+            color: #E8EDF5;
+            background: #0F1B2D;
+            border-top: 1px solid #243450;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 12px;
+            background: #00C9A7;
+            color: #0F1B2D;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        #status { font-size: 12px; color: #7A90B0; margin-top: 8px; }
+        #retry-btn {
+            display: none;
+            margin-top: 10px;
+            padding: 6px 18px;
+            background: transparent;
+            border: 1px solid #243450;
+            color: #E8EDF5;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        #retry-btn:hover { background: #243450; }
+    </style>
+</head>
+<body>
+
+<div id="vlibras-wrapper">
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+
+    <div id="text-display">
+        <span class="badge">TRADUZINDO PARA LIBRAS</span>
+        <p id="texto-alvo">Carregando...</p>
+        <p id="status">Carregando plugin...</p>
+        <button id="retry-btn">Tentar novamente</button>
+    </div>
+</div>
+
+<script>
+(function () {
+    var statusEl = document.getElementById('status');
+    var textoEl  = document.getElementById('texto-alvo');
+    var retryBtn = document.getElementById('retry-btn');
+
+    function getTexto() {
+        var h = window.location.hash || '';
+        var p = '#/translate/';
+        return h.startsWith(p) ? decodeURIComponent(h.slice(p.length)) : null;
+    }
+
+    var texto     = getTexto();
+    var traduzido = false;
+
+    if (texto) textoEl.textContent = texto;
+
+    function tentarTraduzir() {
+        if (traduzido || !texto) return false;
+        try {
+            if (window.vlibras && window.vlibras.translate) {
+                traduzido = true;
+                window.vlibras.translate(texto);
+                var btn = document.querySelector('[vw-access-button]');
+                if (btn) btn.click();
+                statusEl.textContent = '✓ Reproduzindo em LIBRAS';
+                retryBtn.style.display = 'none';
+                return true;
+            }
+        } catch (e) {
+            statusEl.textContent = 'Erro: ' + e.message;
+        }
+        return false;
+    }
+
+    function observarDOM() {
+        var observer = new MutationObserver(function (mutations) {
+            for (var m of mutations) {
+                for (var n of m.addedNodes) {
+                    if (n.nodeType !== 1) continue;
+                    var canvas = (n.tagName === 'CANVAS') ? n : (n.querySelector && n.querySelector('canvas'));
+                    if (canvas) {
+                        statusEl.textContent = 'Widget detectado...';
+                        observer.disconnect();
+                        setTimeout(function () {
+                            if (!tentarTraduzir()) {
+                                statusEl.textContent = 'Clique no botão de acessibilidade';
+                                retryBtn.style.display = 'inline-block';
+                            }
+                        }, 600);
+                        return;
+                    }
+                }
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    document.addEventListener('VLibras:ready',      function () { tentarTraduzir(); });
+    document.addEventListener('VLibras:translated', function () { statusEl.textContent = 'Reproduzindo...'; });
+
+    retryBtn.addEventListener('click', function () {
+        traduzido = false;
+        if (!tentarTraduzir()) {
+            var btn = document.querySelector('[vw-access-button]');
+            if (btn) btn.click();
+            statusEl.textContent = 'Aberto manualmente — traduza pelo painel';
+        }
+    });
+
+    setTimeout(function () {
+        if (!traduzido) {
+            statusEl.textContent = '⚠ Widget demorou para carregar. Use o botão de acessibilidade.';
+            retryBtn.style.display = 'inline-block';
+            var btn = document.querySelector('[vw-access-button]');
+            if (btn) btn.click();
+        }
+    }, 15000);
+
+    /* ---------- carrega o plugin dinamicamente e só instancia após load ---------- */
+    function iniciar() {
+        if (!window.VLibras) {
+            statusEl.textContent = '⚠ vlibras-plugin.js não encontrado.';
+            return;
+        }
+        observarDOM();
+        new window.VLibras.Widget('http://localhost:8765/target');
+        statusEl.textContent = 'Aguardando widget...';
+    }
+
+    var script  = document.createElement('script');
+    script.src  = 'vlibras-plugin.js';
+    script.onload  = iniciar;
+    script.onerror = function () {
+        statusEl.textContent = '⚠ Falha ao carregar vlibras-plugin.js';
+    };
+    document.head.appendChild(script);
+
+})();
+</script>
+
+</body>
+</html>
